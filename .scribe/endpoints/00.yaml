@@ -1,0 +1,161 @@
+name: 'Secret Management'
+description: |-
+
+  APIs for managing self-destructing secure notes
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/v1/secrets
+    metadata:
+      custom: []
+      groupName: 'Secret Management'
+      groupDescription: |-
+
+        APIs for managing self-destructing secure notes
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Create a new secret'
+      description: |-
+        Creates a new self-destructing secret note. The note will be encrypted and stored
+        with an optional expiration time. Once retrieved, the note is permanently deleted.
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      content:
+        custom: []
+        name: content
+        description: 'The secret content to store. Max 10,000 characters.'
+        required: true
+        example: my-secret-api-key-12345
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      ttl:
+        custom: []
+        name: ttl
+        description: 'Optional expiration time in minutes (1-43200).'
+        required: false
+        example: 60
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      content: my-secret-api-key-12345
+      ttl: 60
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 201
+        content: |-
+          {
+            "data": {
+              "id": "9d45e8c7-1234-4567-89ab-cdef01234567",
+              "url": "https://api.example.com/api/v1/secrets/9d45e8400-...",
+              "expires_at": "2025-01-10T14:30:00+00:00",
+              "created_at": "2025-01-09T14:30:00+00:00"
+            },
+            "message": "Secret created successfully"
+          }
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 422
+        content: |-
+          {
+            "message": "The content field is required.",
+            "errors": {
+              "content": ["The content field is required."]
+            }
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/v1/secrets/{id}'
+    metadata:
+      custom: []
+      groupName: 'Secret Management'
+      groupDescription: |-
+
+        APIs for managing self-destructing secure notes
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Retrieve and burn a secret'
+      description: |-
+        Retrieves the decrypted content of a secret and permanently deletes it from the database.
+        This action can only be performed once per secret (burn on read).
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The UUID of the secret.'
+        required: true
+        example: 9d45e8c7-1234-4567-89ab-cdef01234567
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 9d45e8c7-1234-4567-89ab-cdef01234567
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "data": {
+              "content": "my-secret-api-key-12345",
+              "created_at": "2025-01-09T14:30:00+00:00",
+              "expires_at": "2025-01-10T14:30:00+00:00"
+            },
+            "message": "Secret retrieved successfully. This secret has been permanently deleted."
+          }
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+            "message": "Secret not found or has expired"
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

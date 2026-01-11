@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secure-drop-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=base64:TMbY8HL2hwJeuxHcRDjocNfxGZvv2cG2d40Bbu/+eWc=
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=secure_drop
+      - DB_USERNAME=secure_drop_user
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    command: >
+      sh -c "php artisan key:generate --force &&
+             php artisan migrate --force &&
+             php artisan config:cache &&
+             php artisan route:cache &&
+             apache2-foreground"
+
+  db:
+    image: mysql:8.0
+    container_name: secure-drop-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: secure_drop
+      MYSQL_USER: secure_drop_user
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+networks:
+  secure-drop-network:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local
