@@ -1,4 +1,8 @@
+# Base image
 FROM php:8.2-apache
+
+# Set working directory
+WORKDIR /var/www/html
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -9,27 +13,33 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     curl \
+    nano \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-# Enable Apache rewrite module (required by Laravel)
+# Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Set working directory
-WORKDIR /var/www/html
+# Configure Apache to serve /public
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
-# Copy application
+# Copy Laravel app
 COPY . .
 
-# Install composer
+# Mark /var/www/html safe for git
+RUN git config --global --add safe.directory /var/www/html
+
+# Install composer (copy from official composer image)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies (include dev for Scribe)
+RUN composer install --optimize-autoloader --no-interaction
 
-# Set permissions
+# Set permissions for storage and cache
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
+
+# Start Apache in foreground
+CMD ["apache2-foreground"]
